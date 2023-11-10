@@ -52,7 +52,7 @@ def break_string_into_chunks(input_string, chunk_size=2000):
     return chunks
 
 
-client = commands.Bot(command_prefix="???????", intents=discord.Intents.all())
+client = commands.Bot(command_prefix="||||||", intents=discord.Intents.all())
 
 @client.event
 async def on_ready():
@@ -142,16 +142,6 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
     embed.add_field(name="Difficulty", value=doc["difficulty"])
     embed.set_footer(text="Support Languages: " + " ".join(doc["languages"]))
     await interaction.edit_original_response(embed=embed)
-    
-
-
-    # for index,chunk in enumerate(result_chunks):
-    #     if (index == 0):
-    #         await interaction.response.send_message(chunk, ephemeral=False)
-    #     else:
-    #         await interaction.followup.send(chunk, ephemeral=False)
-    # await interaction.followup.send(embed=embed, ephemeral=False)
-
 
 
 client.run(os.getenv('bot_token'))
