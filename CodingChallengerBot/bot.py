@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Channel threads will be created in
-challenge_channel_id = "1172624718818459698"
+challenge_channel_id = os.getenv("challenge_channel_id")
 
 # Initialises mongodb database that stores challenges
 db_client = pymongo.MongoClient(os.getenv('mongo_string'))
@@ -62,7 +62,7 @@ def break_string_into_chunks(input_string, chunk_size=2000):
 
 
 # Defines slash command auto complete
-langs = ['javascript', 'java', 'c#', 'python', 'typescript', 'c++']
+langs = ['javascript', 'java', 'csharp', 'python', 'typescript', 'c++']
 async def lang_autocomplete(
 interaction: discord.Interaction,current: str) -> list[app_commands.Choice[str]]:
     return [
@@ -113,7 +113,7 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
     await interaction.response.send_message(embed=embed, ephemeral=private)
 
     # Querey the mongodb database
-    filter = {"languages": {"$in": ["python"]}}
+    filter = {"languages": {"$in": [lang]}}
     if difficulty != "any":
         filter["difficulty"] = int(difficulty)
 
@@ -125,7 +125,7 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
     embed=discord.Embed(title=doc["name"], description=doc["category"], color=0x1f5ad1)
     embed.add_field(name="Code Wars Link", value=doc["url"], inline=True)
     embed.add_field(name="Difficulty", value=doc["difficulty"], inline=True)
-    embed.set_footer(text="Support Languages: " + " ".join(doc["languages"]))
+    embed.set_footer(text="Supported Languages: " + " ".join(doc["languages"]))
 
     content = doc["description"]
     cleaned_content = re.sub(r'<[^<]+?>', '', content)
