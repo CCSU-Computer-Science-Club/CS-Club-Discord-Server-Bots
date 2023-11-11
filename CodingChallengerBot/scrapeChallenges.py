@@ -21,8 +21,8 @@ def process_challenge(count, id):
     if not collection.find_one({"_id": id}):
         r = requests.get("https://www.codewars.com/api/v1/code-challenges/" + id)
         print(f"{r.status_code} : {count}")
-        if (r.status_code != 200):
-            time.sleep(1)
+        if (r.status_code == 429):
+            time.sleep(30)
             process_challenge(count, id)
             return
 
@@ -39,16 +39,18 @@ def fetch_by_difficulty(difficulty):
     browser = webdriver.Chrome(options=options)
     browser.get(f'https://www.codewars.com/kata/search/?q=&r%5B%5D=-{difficulty}&beta=false&order_by=popularity%20desc')
 
-    for i in range(25):
+    check_limit = 100
+    
+    for i in range(100):
         body = browser.find_element(By.ID,"code_challenges")
         container = browser.find_element(By.CSS_SELECTOR,".w-full.md\\:w-9\\/12.md\\:pl-4.pr-0.space-y-4")
         height = container.size["height"]
         body.send_keys(Keys.END)
         checks = 0
-        while(height >= container.size["height"] and checks < 50):
+        while(height >= container.size["height"] and checks < check_limit):
             time.sleep(.05)
             checks+=1
-        if (checks == 50):
+        if (checks == check_limit):
             break
 
 
@@ -62,7 +64,7 @@ def fetch_by_difficulty(difficulty):
     browser.quit()
     print(str(len(child_elements)) + f" IDs have been scraped - Difficulty: {difficulty}")
 
-    num_threads = 4
+    num_threads = 1
 
     with ThreadPoolExecutor(max_workers=num_threads) as executor:
         executor.map(lambda args: process_challenge(*args), enumerate(challenge_ids))
