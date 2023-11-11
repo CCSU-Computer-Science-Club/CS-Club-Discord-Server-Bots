@@ -10,10 +10,20 @@ import re
 from dotenv import load_dotenv
 load_dotenv()
 
-client = pymongo.MongoClient(os.getenv('mongo_string'))
-database = client.get_database("CodingChallengeBot")
+# Initialises mongodb database that stores challenges
+db_client = pymongo.MongoClient(os.getenv('mongo_string'))
+database = db_client.get_database("CodingChallengeBot")
 collection = database.get_collection("Challenges")
 
+# Start the discord bot
+client = commands.Bot(command_prefix="||||||", intents=discord.Intents.all())
+@client.event
+async def on_ready():
+    commands = await client.tree.sync()
+    print(f'{len(commands)} command(s) synced')
+
+# Defines button interaction view to close a challenge
+# Send as firsy message in the created thread
 class ChallengeOptions(discord.ui.View) :
     def __init__ (self):
         super().__init__()
@@ -23,26 +33,22 @@ class ChallengeOptions(discord.ui.View) :
         await interaction.response.defer()
         await interaction.channel.delete()
 
-
+# Used to bypass discord 2000 character limit by spliting string at \n\n
 def break_string_into_chunks(input_string, chunk_size=2000):
     chunks = []
     current_chunk = ''
 
     while input_string:
-        # Check if the remaining string is less than the chunk size
         if len(input_string) <= chunk_size:
             chunks.append(input_string)
             break
 
-        # Find the last newline character within the chunk size
         last_newline_index = input_string.rfind('\n\n', 0, chunk_size)
 
         if last_newline_index != -1:
-            # Include the newline character and split the string
             current_chunk += input_string[:last_newline_index + 1]
             input_string = input_string[last_newline_index + 1:]
         else:
-            # No newline found in the chunk, break at the specified size
             current_chunk += input_string[:chunk_size]
             input_string = input_string[chunk_size:]
 
@@ -52,13 +58,7 @@ def break_string_into_chunks(input_string, chunk_size=2000):
     return chunks
 
 
-client = commands.Bot(command_prefix="||||||", intents=discord.Intents.all())
-
-@client.event
-async def on_ready():
-    commands = await client.tree.sync()
-    print(f'{len(commands)} command(s) synced')
-
+# Defines slash command auto complete
 langs = ['javascript', 'java', 'c#', 'python', 'typescript', 'c++']
 async def lang_autocomplete(
 interaction: discord.Interaction,current: str) -> list[app_commands.Choice[str]]:
