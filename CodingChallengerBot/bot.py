@@ -10,6 +10,9 @@ import re
 from dotenv import load_dotenv
 load_dotenv()
 
+# Channel threads will be created in
+challenge_channel_id = "1172624718818459698"
+
 # Initialises mongodb database that stores challenges
 db_client = pymongo.MongoClient(os.getenv('mongo_string'))
 database = db_client.get_database("CodingChallengeBot")
@@ -77,6 +80,7 @@ interaction: discord.Interaction,current: str) -> list[app_commands.Choice[str]]
 @app_commands.autocomplete(difficulty=difficulty_autocomplete)
 async def challenge(interaction: discord.Interaction, lang: str, difficulty: str = "any", private: bool = False):
 
+    # Command parameter validation
     if (lang not in langs):
         embed=discord.Embed(title="Whoops!", description="**That language is not supported!**", color=0xff0000)
         embed.set_footer(text="Please try again!")
@@ -87,15 +91,10 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
         embed.set_footer(text="Please try again!")
         await interaction.response.send_message(embed=embed, ephemeral=True)
         return
-    
-    filter = {"languages": {"$in": ["python"]}}
-    if difficulty != "any":
-        filter["difficulty"] = int(difficulty)
 
+    # Create challenge thread
     threadType = ChannelType.private_thread if private else ChannelType.public_thread
-
-
-    channel = client.get_channel(int("1172624718818459698"))
+    channel = client.get_channel(int(challenge_channel_id))
     thread = await channel.create_thread(
         name="Loading...",
         type=threadType
@@ -104,18 +103,25 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
         system_message = [message async for message in channel.history(limit=1)][0]
         if "started a thread" in system_message.system_content:
             await system_message.delete()
-
     await thread.add_user(interaction.user)
 
 
+    # Respond to command now as mongodb query can be slow and an interaction
+    # must be responded to within 3 seconds
     embed=discord.Embed(title="Challenge Started", description=f"Loading...", color=0x1f5ad1)
     embed.set_footer(text="Please wait...")
     await interaction.response.send_message(embed=embed, ephemeral=private)
+
+    # Querey the mongodb database
+    filter = {"languages": {"$in": ["python"]}}
+    if difficulty != "any":
+        filter["difficulty"] = int(difficulty)
 
     docs = list(collection.find(filter))
     doc = docs[random.randint(0, len(docs) - 1)]
 
     
+    # Format and send the challenge to the newly created thread
     embed=discord.Embed(title=doc["name"], description=doc["category"], color=0x1f5ad1)
     embed.add_field(name="Code Wars Link", value=doc["url"], inline=True)
     embed.add_field(name="Difficulty", value=doc["difficulty"], inline=True)
@@ -137,6 +143,7 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
         else:
             await thread.send(chunk)
 
+    # Update challenge response to show challenge info and link to the thread
     embed=discord.Embed(title="Challenge Started", description=f"View the challenge here: {thread.jump_url}", color=0x1f5ad1)
     embed.add_field(name="Title", value=doc["name"])
     embed.add_field(name="Difficulty", value=doc["difficulty"])
