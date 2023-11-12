@@ -1,10 +1,16 @@
-
-
-
-function pell(n) {
-	// input n is a Number
-	// your smart code here
-	return 0n; // return a BigInt
+function describe(name, func)
+{
+	console.log("<DESCRIBE::>"+name)
+	func()
+}
+function it(name, func)
+{
+	console.log("<IT::>"+name)
+	try {
+		func()
+	} catch (error) {
+		console.log("<FAILED::>" + error.message)
+	}
 }
 
 describe("Tests suite", function() {
