@@ -3,13 +3,15 @@ from discord.ext import commands
 from discord import ChannelType
 from discord import app_commands
 import subprocess
-
+import docker
 import pymongo
 import os
 import random
 import re
 from dotenv import load_dotenv
 load_dotenv()
+
+
 
 # Channel threads will be created in
 challenge_channel_id = os.getenv("challenge_channel_id")
@@ -28,7 +30,6 @@ async def on_ready():
 
 active_challenges = {}
 
-
 class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
     feedback = discord.ui.TextInput(
         label='Paste your solution here',
@@ -45,9 +46,16 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
             filter = {"_id": active_challenges[interaction.channel.id]}
             docs = list(collection.find(filter))
             file.write(docs[0]["code"]["python"]["exampleFixture"])
+
+
+        subprocess.run(f"docker create --name tst python-validator:latest", stdout = subprocess.DEVNULL)
+        subprocess.run(f"docker cp run/. tst:/workspace", stdout = subprocess.DEVNULL)
+        subprocess.run(f"docker start tst", stdout = subprocess.DEVNULL)
+        result = subprocess.run(f"docker logs tst", stdout = subprocess.PIPE)
+        print(result.stdout.decode())
+        await interaction.response.send_message(result.stdout.decode(), ephemeral=True)
+        subprocess.run(f"docker rm -f tst", stdout = subprocess.DEVNULL)
         
-        result = subprocess.Popen(["powershell.exe", '& c:/Users/Connor/Desktop/CS-Club-Discord-Server-Bots/CodingChallengerBot/.venv/Scripts/python.exe c:/Users/Connor/Desktop/CS-Club-Discord-Server-Bots/CodingChallengerBot/run/test.py'], stdout=subprocess.PIPE)
-        await interaction.response.send_message(result.stdout.read().decode(encoding='utf-8'), ephemeral=True)
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         print(error)
         await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
@@ -181,7 +189,10 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
     embed.add_field(name="Title", value=doc["name"])
     embed.add_field(name="Difficulty", value=doc["difficulty"])
     embed.set_footer(text="Support Languages: " + " ".join(doc["languages"]))
-    await interaction.edit_original_response(embed=embed)
+    try:
+        await interaction.edit_original_response(embed=embed)
+    except:
+        pass
 
 
 client.run(os.getenv('bot_token'))
