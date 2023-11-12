@@ -7,7 +7,7 @@ import dotenv
 import os
 
 dotenv.load_dotenv()
-KEY = os.getenv("BOTKEY")
+bot_key = os.getenv("bot_key")
 
 client = discord.Client() 
 bot = commands.Bot(command_prefix='!')
@@ -34,12 +34,12 @@ Now, let's craft a thoughtful and impactful response to guide them on their care
 
 """     
        
-        response_from_bot = hey_bot(KEY,prompt)
+        response_from_bot = hey_bot(bot_key,prompt)
         await message.channel.send(f'{response_from_bot}, {message.author.mention}!')
         
 
     await bot.process_commands(message)
 
 
-bot.run(KEY)
+bot.run(bot_key)
 
