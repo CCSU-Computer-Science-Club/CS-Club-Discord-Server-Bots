@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 
 
-/CodingChallengerBot/scrape_stage2
+/CodingChallengerBot/scrape_stage2/node_modules
