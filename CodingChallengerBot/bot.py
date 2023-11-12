@@ -62,7 +62,7 @@ def break_string_into_chunks(input_string, chunk_size=2000):
 
 
 # Defines slash command auto complete
-langs = ['javascript', 'java', 'csharp', 'python', 'typescript', 'c++']
+langs = ['javascript', 'java', 'csharp', 'python', 'typescript', 'cpp']
 async def lang_autocomplete(
 interaction: discord.Interaction,current: str) -> list[app_commands.Choice[str]]:
     return [
