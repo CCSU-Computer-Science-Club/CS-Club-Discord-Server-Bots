@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import ChannelType
 from discord import app_commands
+import subprocess
 
 import pymongo
 import os
@@ -25,6 +26,32 @@ async def on_ready():
     commands = await client.tree.sync()
     print(f'{len(commands)} command(s) synced')
 
+active_challenges = {}
+
+
+class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
+    feedback = discord.ui.TextInput(
+        label='Paste your solution here',
+        style=discord.TextStyle.long,
+        placeholder='print("Hello World!")',
+        required=True,
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        code = interaction.data["components"][0]["components"][0]["value"]
+        with open('run/solution.py', 'w') as file:
+            file.write(code)
+        with open('run/test.py', 'w') as file:
+            filter = {"_id": active_challenges[interaction.channel.id]}
+            docs = list(collection.find(filter))
+            file.write(docs[0]["code"]["python"]["exampleFixture"])
+        
+        result = subprocess.Popen(["powershell.exe", '& c:/Users/Connor/Desktop/CS-Club-Discord-Server-Bots/CodingChallengerBot/.venv/Scripts/python.exe c:/Users/Connor/Desktop/CS-Club-Discord-Server-Bots/CodingChallengerBot/run/test.py'], stdout=subprocess.PIPE)
+        await interaction.response.send_message(result.stdout.read().decode(encoding='utf-8'), ephemeral=True)
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        print(error)
+        await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
+
 # Defines button interaction view to close a challenge
 # Send as firsy message in the created thread
 class ChallengeOptions(discord.ui.View) :
@@ -35,6 +62,9 @@ class ChallengeOptions(discord.ui.View) :
     async def CloseThread(self, interaction:discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         await interaction.channel.delete()
+    @discord.ui.button(label="Submit Solution", style=discord.ButtonStyle.green)
+    async def SubmitSolution(self, interaction:discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(SubmitSolutionModal())
 
 # Used to bypass discord 2000 character limit by spliting string at \n\n
 def break_string_into_chunks(input_string, chunk_size=2000):
@@ -142,6 +172,9 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
             await thread.send(chunk)
         else:
             await thread.send(chunk)
+    await thread.send("```python\n" + doc["code"]["python"]["setup"] + "\n```")
+
+    active_challenges[thread.id] = doc["_id"]
 
     # Update challenge response to show challenge info and link to the thread
     embed=discord.Embed(title="Challenge Started", description=f"View the challenge here: {thread.jump_url}", color=0x1f5ad1)

@@ -9,7 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "mongodb": "^6.2.0",
     "puppeteer": "^21.5.1",
     "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0"
   }
 }
