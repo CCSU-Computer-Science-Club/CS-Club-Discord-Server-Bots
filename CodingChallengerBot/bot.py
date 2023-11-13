@@ -99,7 +99,7 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
                 else:
                     embed=discord.Embed(title="Result", description=result, color=0x8fce00)
 
-            embed.set_footer(text="Execution time: " + str(time) + "ms")
+            embed.set_footer(text="Execution time: " + str(time * 1000) + "ms")
 
         try:
             await interaction.edit_original_response(embed=embed)
