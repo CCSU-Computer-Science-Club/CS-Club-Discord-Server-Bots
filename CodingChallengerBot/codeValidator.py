@@ -5,7 +5,7 @@ import shutil
 import string
 import threading
 
-def validateCode(user_code, validate_code, lang):
+def validateCode(user_code:str, validate_code:str, lang):
     if (lang == "python"):
         return validate_python(user_code, validate_code)
     elif (lang == "javascript"):
@@ -13,8 +13,7 @@ def validateCode(user_code, validate_code, lang):
     elif (lang == "typescript"):
         return validate_typescript(user_code, validate_code)
 
-
-def validate_python(user_code, validate_code):
+def validate_python(user_code:str, validate_code:str):
 
     if (not os.path.isdir('run')):
          os.mkdir("run")
@@ -22,9 +21,11 @@ def validate_python(user_code, validate_code):
     fileID = generateRandomId()
     os.mkdir(f"run/{fileID}")
 
-    with open(f'run/{fileID}/solution.py', 'w') as file:
+    with open(f'run/{fileID}/solution.py', 'w', encoding="utf-8") as file:
         file.write(user_code)
-    with open(f'run/{fileID}/test.py', 'w') as file:
+    with open(f'run/{fileID}/test.py', 'w', encoding="utf-8") as file:
+        if ("import codewars_test as test" not in validate_code):
+            validate_code = "import codewars_test as test\n" + validate_code
         file.write(validate_code)
 
     result = manageThread(fileID, "python")
@@ -32,7 +33,7 @@ def validate_python(user_code, validate_code):
     shutil.rmtree(f"run/{fileID}")
     return result
 
-def validate_javascript(user_code, validate_code):
+def validate_javascript(user_code:str, validate_code:str):
 
     if (not os.path.isdir('run')):
          os.mkdir("run")
@@ -41,10 +42,10 @@ def validate_javascript(user_code, validate_code):
     os.mkdir(f"run/{fileID}")
 
     data = ""
-    with open(f'DockerFiles/test.js', 'r') as file:
+    with open(f'DockerFiles/test.js', 'r', encoding="utf-8") as file:
         data = file.read()
 
-    with open(f'run/{fileID}/test.js', 'w') as file:
+    with open(f'run/{fileID}/test.js', 'w', encoding="utf-8") as file:
         file.write(data + "\n")
         file.write(user_code + "\n")
         file.write(validate_code)
@@ -56,7 +57,7 @@ def validate_javascript(user_code, validate_code):
     shutil.rmtree(f"run/{fileID}")
     return result
 
-def validate_typescript(user_code, validate_code):
+def validate_typescript(user_code:str, validate_code:str):
 
     if (not os.path.isdir('run')):
          os.mkdir("run")
@@ -65,13 +66,13 @@ def validate_typescript(user_code, validate_code):
     os.mkdir(f"run/{fileID}")
 
     data = ""
-    with open(f'DockerFiles/test.ts', 'r') as file:
+    with open(f'DockerFiles/test.ts', 'r', encoding="utf-8") as file:
         data = file.read()
 
-    with open(f'run/{fileID}/solution.ts', 'w') as file:
+    with open(f'run/{fileID}/solution.ts', 'w', encoding="utf-8") as file:
         file.write(user_code)
 
-    with open(f'run/{fileID}/test.ts', 'w') as file:
+    with open(f'run/{fileID}/test.ts', 'w', encoding="utf-8") as file:
         file.write(data + "\n")
         file.write(validate_code)
 

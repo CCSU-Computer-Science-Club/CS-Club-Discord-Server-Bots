@@ -92,6 +92,7 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
         else:
             result, time, error  = parseResult(result)
             if error:
+                result = result.replace("\t", "᲼᲼")
                 embed=discord.Embed(title="Error", description=result, color=0xcc0000)
             else:
                 if ("Failed" in result):
@@ -113,9 +114,9 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
 
 # Defines button interaction view to close a challenge
 # Send as firsy message in the created thread
-class ChallengeOptions(discord.ui.View) :
+class ChallengeOptions(discord.ui.View):
     def __init__ (self):
-        super().__init__()
+        super().__init__(timeout=None)
 
     @discord.ui.button(label="Close Challenge", style=discord.ButtonStyle.danger)
     async def CloseThread(self, interaction:discord.Interaction, button: discord.ui.Button):
