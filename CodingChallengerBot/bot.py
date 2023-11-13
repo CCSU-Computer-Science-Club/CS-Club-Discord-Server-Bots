@@ -8,6 +8,7 @@ import pymongo
 import os
 import random
 import re
+from codeValidator import validateCode
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -31,7 +32,7 @@ async def on_ready():
 active_challenges = {}
 
 class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
-    feedback = discord.ui.TextInput(
+    soulution = discord.ui.TextInput(
         label='Paste your solution here',
         style=discord.TextStyle.long,
         placeholder='print("Hello World!")',
@@ -39,22 +40,23 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        code = interaction.data["components"][0]["components"][0]["value"]
-        with open('run/solution.py', 'w') as file:
-            file.write(code)
-        with open('run/test.py', 'w') as file:
-            filter = {"_id": active_challenges[interaction.channel.id]}
-            docs = list(collection.find(filter))
-            file.write(docs[0]["code"]["python"]["exampleFixture"])
 
 
-        subprocess.run(f"docker create --name tst python-validator:latest", stdout = subprocess.DEVNULL)
-        subprocess.run(f"docker cp run/. tst:/workspace", stdout = subprocess.DEVNULL)
-        subprocess.run(f"docker start tst", stdout = subprocess.DEVNULL)
-        result = subprocess.run(f"docker logs tst", stdout = subprocess.PIPE)
-        print(result.stdout.decode())
-        await interaction.response.send_message(result.stdout.decode(), ephemeral=True)
-        subprocess.run(f"docker rm -f tst", stdout = subprocess.DEVNULL)
+
+        filter = {"_id": active_challenges[interaction.channel.id]["id"]}
+        lang = active_challenges[interaction.channel.id]["lang"]
+        docs = list(collection.find(filter))
+
+        validate_code = docs[0]["code"][lang]["exampleFixture"]
+        user_code = interaction.data["components"][0]["components"][0]["value"]
+
+        result = validateCode(user_code, validate_code, lang)
+
+        if (result == None or result == ""):
+            result = "None"
+
+        await interaction.response.send_message(result, ephemeral=True)
+        
         
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         print(error)
@@ -180,9 +182,10 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
             await thread.send(chunk)
         else:
             await thread.send(chunk)
-    await thread.send("```python\n" + doc["code"]["python"]["setup"] + "\n```")
-
-    active_challenges[thread.id] = doc["_id"]
+    
+    await thread.send(f"```{lang}\n" + doc["code"][lang]["setup"] + "\n```")
+    
+    active_challenges[thread.id] = {"id": doc["_id"], "lang": lang}
 
     # Update challenge response to show challenge info and link to the thread
     embed=discord.Embed(title="Challenge Started", description=f"View the challenge here: {thread.jump_url}", color=0x1f5ad1)
