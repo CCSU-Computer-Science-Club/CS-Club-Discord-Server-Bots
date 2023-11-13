@@ -102,10 +102,12 @@ def manageThread(fileID, lang):
         return result
 
 def runDocker(fileID, lang, timeout=2000):
-    subprocess.run(f"docker create --cpus 0.5 -m 100m --name {fileID} {lang}-validator:latest", stdout = subprocess.DEVNULL)
+    subprocess.run(f"docker create --cpus 1 -m 300m --name {fileID} {lang}-validator:latest", stdout = subprocess.DEVNULL)
     subprocess.run(f"docker cp run/{fileID}/. {fileID}:/workspace", stdout = subprocess.DEVNULL)
     subprocess.run(f"docker start {fileID}", stdout = subprocess.DEVNULL)
     subprocess.run(f"docker wait {fileID}", stdout = subprocess.DEVNULL)
-    result = subprocess.run(f"docker logs {fileID}", stdout = subprocess.PIPE)
+    result = subprocess.run(f"docker logs {fileID}", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     subprocess.run(f"docker rm -f {fileID}", stdout = subprocess.DEVNULL)
-    return result.stdout.decode()
+    if result.stdout.decode() != "":
+        return result.stdout.decode()
+    return "<SYSTEM::>" + result.stderr.decode()

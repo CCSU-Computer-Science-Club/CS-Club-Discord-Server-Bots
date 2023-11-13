@@ -31,6 +31,36 @@ async def on_ready():
 
 active_challenges = {}
 
+def parseResult(result:str):
+    lines:list[str] = result.split("\n")
+   
+
+    if result.startswith("<SYSTEM::>"):
+        return result.replace("<SYSTEM::>", ""), 0.0, True
+    
+    parsed_output = []
+    for line in lines:
+        if line == "":
+            continue
+        prefix, content = line.split("::>")
+        if prefix == "<DESCRIBE":
+            parsed_output.append(content.strip())
+        elif prefix == "<IT":
+            current_test = content.strip()
+            parsed_output.append(f"᲼᲼{current_test}")
+        elif prefix == "<FAILED":
+            parsed_output.append(f"᲼᲼᲼᲼**Failed**:\n᲼᲼᲼᲼᲼᲼{content.strip()}")
+        elif prefix == "<PASSED":
+            parsed_output.append(f"᲼᲼᲼᲼**Passed**:\n᲼᲼᲼᲼᲼᲼{content.strip()}")
+    lines.reverse()
+    for line in lines:
+        if line.startswith("<COMPLETEDIN::>"):
+            completed_in = float(line.removeprefix("<COMPLETEDIN::>"))
+            break
+
+    return "\n".join(parsed_output), completed_in, False
+
+
 class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
     soulution = discord.ui.TextInput(
         label='Paste your solution here',
@@ -54,15 +84,23 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
         result = validateCode(user_code, validate_code, lang)
+        embed = None
 
         if (result == None or result == ""):
-            result = "None"
+            embed=discord.Embed(title="Result", description=result, color=0xcc0000)
+        else:
+            result, time, error  = parseResult(result)
+            if error:
+                embed=discord.Embed(title="Error", description=result, color=0xcc0000)
+            else:
+                embed=discord.Embed(title="Result", description=result, color=0x8fce00)
+
+            embed.set_footer(text="Execution time: " + str(time) + "ms")
 
         try:
-            embed=discord.Embed(title="Result", description=result, color=0x1f5ad1)
             await interaction.edit_original_response(embed=embed)
         except:
-            pass    
+            pass
         
         
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:

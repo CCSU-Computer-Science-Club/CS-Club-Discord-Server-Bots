@@ -11,4 +11,4 @@ RUN apk add cmd:git
 RUN pip3 install --upgrade pip
 RUN pip3 install git+https://github.com/codewars/python-test-framework.git#egg=codewars_test
 
-ENTRYPOINT ["python3", "test.py"]
+ENTRYPOINT ["python3", "-u", "test.py"]
