@@ -23,6 +23,8 @@ active_challenges = {}
 db_client = pymongo.MongoClient(os.getenv('mongo_string'))
 database = db_client.get_database("CodingChallengeBot")
 collection = database.get_collection("Challenges")
+users_collection = database.get_collection("Users")
+
 
 # Start the discord bot
 client = commands.Bot(command_prefix="||||||", intents=discord.Intents.all())
@@ -86,6 +88,7 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
 
         result = validateCode(user_code, validate_code, lang)
         embed = None
+        passed = False
 
         if (result == None or result == ""):
             embed=discord.Embed(title="Result", description=result, color=0xcc0000)
@@ -98,15 +101,28 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
                 if ("Failed" in result):
                     embed=discord.Embed(title="Result", description=result, color=0xe69138)
                 else:
+                    passed = True
                     embed=discord.Embed(title="Result", description=result, color=0x8fce00)
 
             embed.set_footer(text="Execution time: " + str(time * 1000) + "ms")
-
         try:
             await interaction.edit_original_response(embed=embed)
         except:
             pass
-        
+        if (passed):
+
+            users = list(users_collection.find({"_id": interaction.user.id}))
+            user = None
+            if (len(users) == 0):
+                user = {"_id": interaction.user.id, "passed": 0, "name": interaction.user.nick}
+                users_collection.insert_one(user)
+
+            user["passed"] = user["passed"] + 1
+            users_collection.replace_one({"_id": interaction.user.id}, user)
+
+            embed=discord.Embed(title="User Statistics", description=f"Challenges Complete: {user['passed']}", color=0x1f5ad1)
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            
         
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         print(error)
@@ -250,6 +266,20 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
     except:
         pass
 
+@client.tree.command(name="leaderboard", description="View the challenge leaderboard")
+async def leaderboard(interaction: discord.Interaction):
+    users = list(users_collection.find().sort("passed", -1).limit(10))
+
+    result = ""
+    for index,user in enumerate(users):
+        result += "**" + str(index + 1) + ":**" + " " + str(user["name"]).ljust(15, "᲼") + f"᲼᲼᲼᲼᲼᲼Completed: {user['passed']}\n"
+    
+    if len(result) == 0:
+        result = "The leaderboard is empty"
+
+    embed=discord.Embed(title="Leaderboard", description=result, color=0x1f5ad1)
+    await interaction.response.send_message(embed=embed)
+    
 
 client.run(os.getenv('bot_token'))
 
