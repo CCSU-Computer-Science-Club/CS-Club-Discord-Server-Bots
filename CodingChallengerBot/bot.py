@@ -41,8 +41,6 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
 
     async def on_submit(self, interaction: discord.Interaction):
 
-
-
         filter = {"_id": active_challenges[interaction.channel.id]["id"]}
         lang = active_challenges[interaction.channel.id]["lang"]
         docs = list(collection.find(filter))
@@ -50,12 +48,21 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
         validate_code = docs[0]["code"][lang]["exampleFixture"]
         user_code = interaction.data["components"][0]["components"][0]["value"]
 
+
+        embed=discord.Embed(title="Running code", description=f"Loading...", color=0x1f5ad1)
+        embed.set_footer(text="Please wait...")
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
         result = validateCode(user_code, validate_code, lang)
 
         if (result == None or result == ""):
             result = "None"
 
-        await interaction.response.send_message(result, ephemeral=True)
+        try:
+            embed=discord.Embed(title="Result", description=result, color=0x1f5ad1)
+            await interaction.edit_original_response(embed=embed)
+        except:
+            pass    
         
         
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
@@ -184,7 +191,7 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
             await thread.send(chunk)
     
     await thread.send(f"```{lang}\n" + doc["code"][lang]["setup"] + "\n```")
-    
+
     active_challenges[thread.id] = {"id": doc["_id"], "lang": lang}
 
     # Update challenge response to show challenge info and link to the thread
