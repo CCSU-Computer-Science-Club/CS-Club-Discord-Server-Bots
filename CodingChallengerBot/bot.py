@@ -94,6 +94,8 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
                 embed=discord.Embed(title="Error", description=result, color=0xcc0000)
             else:
                 embed=discord.Embed(title="Result", description=result, color=0x8fce00)
+                if ("FAILED" not in result):
+                    print("PASSED")
 
             embed.set_footer(text="Execution time: " + str(time) + "ms")
 
@@ -147,7 +149,9 @@ def break_string_into_chunks(input_string, chunk_size=2000):
 
 
 # Defines slash command auto complete
-langs = ['javascript', 'java', 'csharp', 'python', 'typescript', 'cpp']
+#langs = ['javascript', 'java', 'csharp', 'python', 'typescript', 'cpp']
+langs = ['javascript', 'python', 'typescript']
+
 async def lang_autocomplete(
 interaction: discord.Interaction,current: str) -> list[app_commands.Choice[str]]:
     return [
