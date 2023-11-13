@@ -94,7 +94,10 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
             if error:
                 embed=discord.Embed(title="Error", description=result, color=0xcc0000)
             else:
-                embed=discord.Embed(title="Result", description=result, color=0x8fce00)
+                if ("Failed" in result):
+                    embed=discord.Embed(title="Result", description=result, color=0xe69138)
+                else:
+                    embed=discord.Embed(title="Result", description=result, color=0x8fce00)
 
             embed.set_footer(text="Execution time: " + str(time) + "ms")
 
