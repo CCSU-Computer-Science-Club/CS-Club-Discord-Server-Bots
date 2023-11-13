@@ -16,6 +16,8 @@ load_dotenv()
 
 # Channel threads will be created in
 challenge_channel_id = os.getenv("challenge_channel_id")
+active_challenges = {}
+
 
 # Initialises mongodb database that stores challenges
 db_client = pymongo.MongoClient(os.getenv('mongo_string'))
@@ -29,7 +31,6 @@ async def on_ready():
     commands = await client.tree.sync()
     print(f'{len(commands)} command(s) synced')
 
-active_challenges = {}
 
 def parseResult(result:str):
     lines:list[str] = result.split("\n")
@@ -72,7 +73,7 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
     async def on_submit(self, interaction: discord.Interaction):
 
         filter = {"_id": active_challenges[interaction.channel.id]["id"]}
-        lang = active_challenges[interaction.channel.id]["lang"]
+        lang = active_challenges[interaction.channel.id]["lang"]        
         docs = list(collection.find(filter))
 
         validate_code = docs[0]["code"][lang]["exampleFixture"]
@@ -91,13 +92,15 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
         else:
             result, time, error  = parseResult(result)
             if error:
+                result = result.replace("\t", "᲼᲼")
                 embed=discord.Embed(title="Error", description=result, color=0xcc0000)
             else:
-                embed=discord.Embed(title="Result", description=result, color=0x8fce00)
-                if ("FAILED" not in result):
-                    print("PASSED")
+                if ("Failed" in result):
+                    embed=discord.Embed(title="Result", description=result, color=0xe69138)
+                else:
+                    embed=discord.Embed(title="Result", description=result, color=0x8fce00)
 
-            embed.set_footer(text="Execution time: " + str(time) + "ms")
+            embed.set_footer(text="Execution time: " + str(time * 1000) + "ms")
 
         try:
             await interaction.edit_original_response(embed=embed)
@@ -111,12 +114,13 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
 
 # Defines button interaction view to close a challenge
 # Send as firsy message in the created thread
-class ChallengeOptions(discord.ui.View) :
+class ChallengeOptions(discord.ui.View):
     def __init__ (self):
-        super().__init__()
+        super().__init__(timeout=None)
 
     @discord.ui.button(label="Close Challenge", style=discord.ButtonStyle.danger)
     async def CloseThread(self, interaction:discord.Interaction, button: discord.ui.Button):
+        active_challenges.pop(interaction.channel.id)
         await interaction.response.defer()
         await interaction.channel.delete()
     @discord.ui.button(label="Submit Solution", style=discord.ButtonStyle.green)

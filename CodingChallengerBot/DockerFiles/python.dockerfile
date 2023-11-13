@@ -4,6 +4,7 @@ FROM alpine:latest
 RUN mkdir "/workspace"
 WORKDIR "/workspace"
 
+RUN apk update && apk upgrade
 RUN apk add --no-cache python3
 RUN apk add --no-cache git
 RUN apk add cmd:pip3
