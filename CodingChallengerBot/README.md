@@ -25,6 +25,20 @@ run the command below to install the dependencies, you can do this in a python v
 pip install -r requirements.txt
 ```
 
+### Setup Docker
+
+The best way to setup docker is to install docker desktop
+
+```
+https://www.docker.com/products/docker-desktop/
+```
+
+Once docker desktop is installed you will want to run the docker build script associated with your operating system, `dockerBuild.bat` for **windows** and `dockerBuild.sh` for **linux.** These scripts will build the docker images for each of the code validators and will add them to your docker instance. 
+
+#### What is docker? Basic Overview
+
+Docker images are virtual machines that are created programatically from a "dockerfile". You can create a container from this docker image. The container will act as its own virtual machine seperate from other containers on your system. You can create multiple containers from the same image if you wish. The docker image acts only as a base from which the container can run and manipilate. Docker allows the bot to run code in sandboxed environments where malicious code will have much much more difficulty causing problems. 
+
 ### Run the bot
 
 run the bot.py file
