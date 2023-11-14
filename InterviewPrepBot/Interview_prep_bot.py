@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from PalmAi import  hey_bot
+
 import discord
 from discord.ext import commands
 import dotenv
@@ -34,8 +34,8 @@ Now, let's craft a thoughtful and impactful response to guide them on their care
 
 """     
        
-        response_from_bot = hey_bot(bot_key,prompt)
-        await message.channel.send(f'{response_from_bot}, {message.author.mention}!')
+        #response_from_bot = hey_bot(bot_key,prompt)
+        #await message.channel.send(f'{response_from_bot}, {message.author.mention}!')
         
 
     await bot.process_commands(message)
