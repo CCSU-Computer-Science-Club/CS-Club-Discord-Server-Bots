@@ -12,5 +12,19 @@ The CSBot class is used as a starting point for any bots created in this codebas
 Below shows an example implementation of a very simple bot created using the CSBot class
 
 ```python-repl
-var thing = thing
+import os
+import sys
+from dotenv import load_dotenv
+load_dotenv()
+
+from CSBotCommon import Bot
+
+bot = Bot(os.getenv('mongo_string'), os.getenv('bot_token'))
+
+@bot.botClient.event
+async def on_ready():
+    await bot.botClient.tree.sync()
+    print(f'The bot has been started!')
+
+bot.run()
 ```
