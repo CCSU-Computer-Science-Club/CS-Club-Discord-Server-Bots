@@ -1,3 +1,6 @@
+import discord
+from discord.ext import commands
+import pymongo
 import pprint
 import google.generativeai as palm
 import google.auth.transport.requests
@@ -5,14 +8,40 @@ from google.protobuf import json_format
 import dotenv
 import os
 
+class Bot:
+    def __init__(self, mongoUri, botToken):
+        self.mongoClient = pymongo.MongoClient(mongoUri)
+        self.botClient = commands.Bot(command_prefix="||||||", intents=discord.Intents.all())
+        self.botToken = botToken
 
-dotenv.load_dotenv()
-palmp_api_key = os.getenv("palmp_api_key")
+    def run(self):
+        self.botClient.run(self.botToken)
 
+    def break_string_into_chunks(input_string, chunk_size=2000):
+        chunks = []
+        current_chunk = ''
 
-class PalmApi:
+        while input_string:
+            if len(input_string) <= chunk_size:
+                chunks.append(input_string)
+                break
+
+            last_newline_index = input_string.rfind('\n\n', 0, chunk_size)
+
+            if last_newline_index != -1:
+                current_chunk += input_string[:last_newline_index + 1]
+                input_string = input_string[last_newline_index + 1:]
+            else:
+                current_chunk += input_string[:chunk_size]
+                input_string = input_string[chunk_size:]
+
+            chunks.append(current_chunk)
+            current_chunk = ''
+
+        return chunks
     
-    def __init__(self, prompt,output_max_length):
+class PalmApi:
+    def __init__(self, prompt,output_max_length, palmp_api_key):
         self.key = palmp_api_key
         self.refine_count = 0
         self.try_count = 0
@@ -46,7 +75,7 @@ class PalmApi:
 
     def text_generator_agent(self):
         
-        palm.configure(api_key=os.getenv("palmp_api_key"))
+        palm.configure(api_key=self.palmp_api_key)
         
         models = [m for m in palm.list_models() if 'generateText' in m.supported_generation_methods]
         model = models[0].name
@@ -68,7 +97,6 @@ class PalmApi:
             print(f"Refine count: {self.refine_count} \nNumber of tries: {self.try_count}")
             return self.response
 
-    
 
 # Uncomment this to test.
 # if __name__ == "__main__":
@@ -77,4 +105,3 @@ class PalmApi:
    
 #     api.text_generator_agent()
 #     print(api.response)
-    
