@@ -16,6 +16,7 @@ load_dotenv()
 
 # Channel threads will be created in
 challenge_channel_id = os.getenv("challenge_channel_id")
+
 active_challenges = {}
 
 
@@ -71,14 +72,18 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
         placeholder='print("Hello World!")',
         required=True,
     )
+    def remainder(a, b):
+        if b == 0:
+            return None
+        return max(a, b) % min(a, b)
 
     async def on_submit(self, interaction: discord.Interaction):
 
         filter = {"_id": active_challenges[interaction.channel.id]["id"]}
         lang = active_challenges[interaction.channel.id]["lang"]        
-        docs = list(collection.find(filter))
+        code_doc = list(collection.find(filter))[0]
 
-        validate_code = docs[0]["code"][lang]["exampleFixture"]
+        validate_code = code_doc["code"][lang]["exampleFixture"]
         user_code = interaction.data["components"][0]["components"][0]["value"]
 
 
@@ -114,14 +119,23 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
             users = list(users_collection.find({"_id": interaction.user.id}))
             user = None
             if (len(users) == 0):
-                user = {"_id": interaction.user.id, "passed": 0, "name": interaction.user.nick}
+                user = {"_id": interaction.user.id, "score": 0, "completed": []}
                 users_collection.insert_one(user)
+            else:
+                user = users[0]
+            id = code_doc["_id"]
+            id = id + "-" + lang
+            if (id not in user["completed"]):
+                user["score"] += code_doc["difficulty"]/10
+                user["completed"].append(id)
 
-            user["passed"] = user["passed"] + 1
-            users_collection.replace_one({"_id": interaction.user.id}, user)
+                users_collection.replace_one({"_id": interaction.user.id}, user)
 
-            embed=discord.Embed(title="User Statistics", description=f"Challenges Complete: {user['passed']}", color=0x1f5ad1)
-            await interaction.followup.send(embed=embed, ephemeral=True)
+                embed=discord.Embed(title="User Statistics", description=f"Challenges Complete: {len(user['completed'])}\nScore: {user['score']}", color=0x1f5ad1)
+                await interaction.followup.send(embed=embed, ephemeral=True)
+            else:
+                embed=discord.Embed(title="Sorry!", description=f"You have already completed this challenge using {lang}, no more points can be awarded", color=0x1f5ad1)
+                await interaction.followup.send(embed=embed, ephemeral=True)
             
         
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
@@ -269,15 +283,18 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
 @client.tree.command(name="leaderboard", description="View the challenge leaderboard")
 async def leaderboard(interaction: discord.Interaction):
     users = list(users_collection.find().sort("passed", -1).limit(10))
+    embed=discord.Embed(title="Leaderboard", color=0x1f5ad1)
 
     result = ""
     for index,user in enumerate(users):
-        result += "**" + str(index + 1) + ":**" + " " + str(user["name"]).ljust(15, "᲼") + f"᲼᲼᲼᲼᲼᲼Completed: {user['passed']}\n"
-    
-    if len(result) == 0:
-        result = "The leaderboard is empty"
+        discord_user = client.get_guild(interaction.guild_id).get_member(user["_id"])
+        name = "Unknown"
+        if (discord_user != None):
+            name = discord_user.nick
+            if (name == None):
+                name = discord_user.name
+        embed.add_field(name="**" + str(index + 1) + ":**" + " " + name, value=f"Score: {user['score']}", inline=False)
 
-    embed=discord.Embed(title="Leaderboard", description=result, color=0x1f5ad1)
     await interaction.response.send_message(embed=embed)
     
 
