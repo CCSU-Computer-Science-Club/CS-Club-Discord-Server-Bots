@@ -126,7 +126,7 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
             id = code_doc["_id"]
             id = id + "-" + lang
             if (id not in user["completed"]):
-                user["score"] += code_doc["difficulty"]/10
+                user["score"] += code_doc["difficulty"]
                 user["completed"].append(id)
 
                 users_collection.replace_one({"_id": interaction.user.id}, user)
