@@ -1,49 +1,72 @@
 import google.generativeai as palm
-import os
 import dotenv
 import os
 
 dotenv.load_dotenv()
-palm_api_key = os.getenv("palm_api_key")
-
+palmp_api_key = os.getenv("palmp_api_key")
 
 
 class PalmApi:
-    def __init__(self, palm_api_key):
-        self.palm_api_key = palm_api_key
+
+    def __init__(self, prompt, output_max_length):
+        self.key = palmp_api_key
         self.refine_count = 0
         self.try_count = 0
-        self.max_output_tokens=800
-        self.temperature = 0
-        self.model="models/text-bison-001"
+        self.prompt = prompt
+        self.response = ""
+        self.output_max_length = output_max_length
 
+    def message_length_refiner_agent(self, ):
+        """
+        This method is intended to refine the previous AI output.
+        It should make a request to get the previous output text to be re-adjusted depending on your preferences.
+        Args:
+            output_max_length (int): The maximum words output of the previous AI output. Assumin that each word has on average 6.5 characters.
 
-        palm.configure(api_key=self.palm_api_key)
+        """
+        original_prompt = self.prompt
+        previous_ai_response = self.response
 
-    def hey_bot(self, prompt):
+        refine_character_prompt = f"""
+                                Here is my question {original_prompt}.
+                                Here is your response {previous_ai_response}. You exceeded the word count of {self.output_max_length}. Make it shorter.
+                                Rewrite your response to be {self.output_max_length} words!     
+                                    """
+
+        refined_output = self.text_generator_agent(refine_character_prompt)
+
+        print(f"Refine count: {self.refine_count}")
+
+        return refined_output
+
+    def text_generator_agent(self):
+
+        palm.configure(api_key=os.getenv("palmp_api_key"))
+
+        models = [m for m in palm.list_models() if 'generateText' in m.supported_generation_methods]
+        model = models[0].name
+
         completion = palm.generate_text(
-            model=self.model,
-            prompt=prompt,
-            temperature=self.temperature,
-            max_output_tokens=self.max_output_tokens,
-        )
-        response = completion.result
+            model=model,
+            prompt=self.prompt,
+            temperature=0,
+            # The maximum length of the response
+            max_output_tokens=800, )
 
-        if len(response) > 2000:
-            self.refine_count += 1
-            refine_character_prompt = f"""Here is my question {prompt}.
-             Here is your response {response}. You exceed the character count of 2000. Make it shorter."""
-            self.hey_bot(refine_character_prompt)
+        self.response = completion.result
 
-        elif response is None:
-            self.try_count += 1
-            self.hey_bot(prompt)
+        if (len(self.response)) / 6.5 > self.output_max_length:
+            self.message_length_refiner_agent(self.output_max_length)
+
 
         else:
             print(f"Refine count: {self.refine_count} \nNumber of tries: {self.try_count}")
-            return response
+            return self.response
 
+# Uncomment this to test.
+# if __name__ == "__main__":
+#     prompt = "How are you?"
+#     api = PalmApi(prompt,200)
 
-
-palm_instance = PalmApi(palm_api_key=palm_api_key)
-response = palm_instance.hey_bot("How are you ?")
+#     api.text_generator_agent()
+#     print(api.response)
