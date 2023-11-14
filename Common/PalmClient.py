@@ -3,7 +3,7 @@ import dotenv
 import os
 
 dotenv.load_dotenv()
-palmp_api_key = os.getenv("palmp_api_key")
+palmp_api_key = os.getenv('palm_api_key')
 
 
 class PalmApi:
@@ -15,6 +15,8 @@ class PalmApi:
         self.prompt = prompt
         self.response = ""
         self.output_max_length = output_max_length
+        self.model = ""
+        self.configue_client()
 
     def message_length_refiner_agent(self, ):
         """
@@ -33,21 +35,25 @@ class PalmApi:
                                 Rewrite your response to be {self.output_max_length} words!     
                                     """
 
-        refined_output = self.text_generator_agent(refine_character_prompt)
+        refined_output = self.text_generator_agent()
 
         print(f"Refine count: {self.refine_count}")
 
         return refined_output
 
+    def configue_client(self):
+
+        try:
+            palm.configure(api_key=self.key)
+            models = [m for m in palm.list_models() if 'generateText' in m.supported_generation_methods]
+            self.model = models[0].name
+        except:
+            print("An error has occured while trying to configue Palm AI client")
+
     def text_generator_agent(self):
 
-        palm.configure(api_key=os.getenv("palmp_api_key"))
-
-        models = [m for m in palm.list_models() if 'generateText' in m.supported_generation_methods]
-        model = models[0].name
-
         completion = palm.generate_text(
-            model=model,
+            model=self.model,
             prompt=self.prompt,
             temperature=0,
             # The maximum length of the response
@@ -63,10 +69,11 @@ class PalmApi:
             print(f"Refine count: {self.refine_count} \nNumber of tries: {self.try_count}")
             return self.response
 
-# Uncomment this to test.
-# if __name__ == "__main__":
-#     prompt = "How are you?"
-#     api = PalmApi(prompt,200)
 
-#     api.text_generator_agent()
-#     print(api.response)
+# Uncomment this to test.
+if __name__ == "__main__":
+    prompt = "How are you?"
+    api = PalmApi(prompt, 200)
+
+    api.text_generator_agent()
+    print(api.response)
