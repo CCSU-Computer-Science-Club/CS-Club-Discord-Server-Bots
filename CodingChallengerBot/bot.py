@@ -8,6 +8,7 @@ import pymongo
 import os
 import random
 import re
+from CSBotCommon import Bot
 from codeValidator import validateCode
 from dotenv import load_dotenv
 load_dotenv()
@@ -16,19 +17,20 @@ load_dotenv()
 
 # Channel threads will be created in
 challenge_channel_id = os.getenv("challenge_channel_id")
-
 active_challenges = {}
+
+bot_instance = Bot(os.getenv('mongo_string'), os.getenv('bot_token'))
+client = bot_instance.botClient
 
 
 # Initialises mongodb database that stores challenges
-db_client = pymongo.MongoClient(os.getenv('mongo_string'))
+db_client = bot_instance.mongoClient
 database = db_client.get_database("CodingChallengeBot")
 collection = database.get_collection("Challenges")
 users_collection = database.get_collection("Users")
 
 
 # Start the discord bot
-client = commands.Bot(command_prefix="||||||", intents=discord.Intents.all())
 @client.event
 async def on_ready():
     commands = await client.tree.sync()
@@ -157,30 +159,6 @@ class ChallengeOptions(discord.ui.View):
     async def SubmitSolution(self, interaction:discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(SubmitSolutionModal())
 
-# Used to bypass discord 2000 character limit by spliting string at \n\n
-def break_string_into_chunks(input_string, chunk_size=2000):
-    chunks = []
-    current_chunk = ''
-
-    while input_string:
-        if len(input_string) <= chunk_size:
-            chunks.append(input_string)
-            break
-
-        last_newline_index = input_string.rfind('\n\n', 0, chunk_size)
-
-        if last_newline_index != -1:
-            current_chunk += input_string[:last_newline_index + 1]
-            input_string = input_string[last_newline_index + 1:]
-        else:
-            current_chunk += input_string[:chunk_size]
-            input_string = input_string[chunk_size:]
-
-        chunks.append(current_chunk)
-        current_chunk = ''
-
-    return chunks
-
 
 # Defines slash command auto complete
 #langs = ['javascript', 'java', 'csharp', 'python', 'typescript', 'cpp']
@@ -255,7 +233,7 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
     cleaned_content= re.sub(r'\n{3,}', '\n\n', cleaned_content)
     cleaned_content.replace("~~~", "")
 
-    result_chunks = break_string_into_chunks(cleaned_content)
+    result_chunks = bot_instance.break_string_into_chunks(cleaned_content)
     
     await thread.edit(name=doc["name"])
     await thread.send(embed=embed, view=ChallengeOptions())
@@ -298,5 +276,4 @@ async def leaderboard(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
     
 
-client.run(os.getenv('bot_token'))
-
+bot_instance.run()
