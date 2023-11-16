@@ -5,7 +5,7 @@ load_dotenv()
 
 from CSBotCommon import Bot
 
-bot = Bot(os.getenv('mongo_string'), os.getenv('bot_token'))
+bot = Bot(os.getenv('bot_token'))
 
 @bot.botClient.event
 async def on_ready():

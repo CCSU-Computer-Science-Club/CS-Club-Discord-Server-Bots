@@ -9,8 +9,9 @@ import dotenv
 import os
 
 class Bot:
-    def __init__(self, mongoUri, botToken):
-        self.mongoClient = pymongo.MongoClient(mongoUri)
+    def __init__(self, botToken, mongoUri=None):
+        if (mongoUri != None):
+            self.mongoClient = pymongo.MongoClient(mongoUri)
         self.botClient = commands.Bot(command_prefix="||||||", intents=discord.Intents.all())
         self.botToken = botToken
 
@@ -53,13 +54,14 @@ class PalmApi:
         self.configue_client()
 
     def configue_client(self):
-        self.palm = palm.configure(api_key=self.key)
-        models = [m for m in palm.list_models() if 'generateText' in m.supported_generation_methods]
-        self.model = models[0].name
+
         try:
-            pass
+            self.palm = palm.configure(api_key=self.key)
+            models = [m for m in palm.list_models() if 'generateText' in m.supported_generation_methods]
+            self.model = models[0].name
+            #print(self.model)
         except:
-            print("An error has occured while trying to configue Palm AI client")
+            print("An error has occurred while trying to configue Palm AI client")
 
     def message_length_refiner_agent(self, ):
         """
@@ -68,6 +70,7 @@ class PalmApi:
         Args:
             output_max_length (int): The maximum words output of the previous AI output. Assumin that each word has on average 6.5 characters.
         """
+
         original_prompt = self.prompt
         previous_ai_response = self.response
         refine_character_prompt = f"""
@@ -77,8 +80,7 @@ class PalmApi:
                                     """
         refined_output = self.text_generator_agent(refine_character_prompt)
 
-        print(f"Refine count: {self.refine_count}")
-
+        #print(f"Refine count: {self.refine_count}")
         return refined_output
     def text_generator_agent(self):
         completion = palm.generate_text(
@@ -91,7 +93,7 @@ class PalmApi:
         if (len(self.response)) / 6.5 > self.output_max_length:
             self.message_length_refiner_agent(self.output_max_length)
         else:
-            print(f"Refine count: {self.refine_count} \nNumber of tries: {self.try_count}")
+            #print(f"Refine count: {self.refine_count} \nNumber of tries: {self.try_count}")
             return self.response
 
 #Uncomment this to test.
