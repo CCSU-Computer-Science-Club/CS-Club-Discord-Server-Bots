@@ -17,7 +17,7 @@ class Bot:
     def run(self):
         self.botClient.run(self.botToken)
 
-    def break_string_into_chunks(input_string, chunk_size=2000):
+    def break_string_into_chunks(self, input_string, chunk_size=2000):
         chunks = []
         current_chunk = ''
 
