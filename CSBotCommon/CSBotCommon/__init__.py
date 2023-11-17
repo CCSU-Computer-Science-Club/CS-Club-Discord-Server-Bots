@@ -38,11 +38,12 @@ class Bot:
 
             chunks.append(current_chunk)
             current_chunk = ''
-
         return chunks
 
 class PalmApi:
-    def __init__(self, prompt,output_max_length, palmp_api_key):
+    def __init__(self, prompt,palmp_api_key,output_max_length=None ):
+        if (output_max_length!=None):
+            self.output_max_length = output_max_length
         self.key = palmp_api_key
         self.refine_count = 0
         self.try_count = 0
@@ -90,16 +91,12 @@ class PalmApi:
             # The maximum length of the response
             max_output_tokens=800, )
         self.response = completion.result
-        if (len(self.response)) / 6.5 > self.output_max_length:
-            self.message_length_refiner_agent(self.output_max_length)
+
+        # Enter Character refiner function if the user provide max length and if AI agent exceed it.
+        if self.output_max_length != None:
+            if (len(self.response)) / 6.5 > self.output_max_length:
+                self.message_length_refiner_agent(self.output_max_length)
         else:
             #print(f"Refine count: {self.refine_count} \nNumber of tries: {self.try_count}")
             return self.response
 
-#Uncomment this to test.
-# if __name__ == "__main__":
-#     prompt = "How are you?"
-#     api = PalmApi(prompt,200,os.getenv("palm_api_key"))
-#
-#     api.text_generator_agent()
-#     print(api.response)
