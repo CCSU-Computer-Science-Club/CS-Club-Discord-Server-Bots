@@ -4,6 +4,12 @@ import random
 import shutil
 import string
 import threading
+import shutil
+import time
+import signal
+import socketio
+
+reciveLoop = True
 
 def validateCode(user_code:str, validate_code:str, lang):
     if (lang == "python"):
@@ -112,3 +118,22 @@ def runDocker(fileID, lang, timeout=2000):
     if result.stdout.decode() != "":
         return result.stdout.decode()
     return "<SYSTEM::>" + result.stderr.decode()
+
+io = socketio.SimpleClient()
+io.connect('http://localhost:8989', transports=['websocket'])
+
+def handle_interrupt(signum, frame):
+    global reciveLoop
+    print("Code Validator Terminating...")
+    reciveLoop = False
+    exit(0)
+signal.signal(signal.SIGINT, handle_interrupt)
+signal.signal(signal.SIGTERM, handle_interrupt)
+
+
+while reciveLoop:
+    event = io.receive()
+    if (event[0] == "runcode"):
+        json = event[1]
+        result = validateCode(json["user_code"], json["validate_code"], json["lang"])
+        io.emit("submit_result", result)

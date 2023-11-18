@@ -28,8 +28,6 @@ client = bot_instance.botClient
 def handle_interrupt(signum, frame):
     print("Coding Challenger Bot Terminating...")
     bot_instance.botClient.close()
-    time.sleep(5.1)
-    shutil.rmtree(f"run")
     exit(0)
 signal.signal(signal.SIGINT, handle_interrupt)
 signal.signal(signal.SIGTERM, handle_interrupt)
