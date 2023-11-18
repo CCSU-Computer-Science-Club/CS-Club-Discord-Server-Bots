@@ -8,19 +8,31 @@ import pymongo
 import os
 import random
 import re
+import signal
 from CSBotCommon import Bot
+import time
+import shutil
 from codeValidator import validateCode
 from dotenv import load_dotenv
 load_dotenv()
-
 
 
 # Channel threads will be created in
 challenge_channel_id = os.getenv("challenge_channel_id")
 active_challenges = {}
 
-bot_instance = Bot(os.getenv('mongo_string'), os.getenv('bot_token'))
+bot_instance = Bot(os.getenv('bot_token'), mongoUri=os.getenv('mongo_string'))
 client = bot_instance.botClient
+
+# Allows for clean termination
+def handle_interrupt(signum, frame):
+    print("Coding Challenger Bot Terminating...")
+    bot_instance.botClient.close()
+    time.sleep(5.1)
+    shutil.rmtree(f"run")
+    exit(0)
+signal.signal(signal.SIGINT, handle_interrupt)
+signal.signal(signal.SIGTERM, handle_interrupt)
 
 
 # Initialises mongodb database that stores challenges
@@ -274,6 +286,5 @@ async def leaderboard(interaction: discord.Interaction):
         embed.add_field(name="**" + str(index + 1) + ":**" + " " + name, value=f"Score: {user['score']}", inline=False)
 
     await interaction.response.send_message(embed=embed)
-    
 
 bot_instance.run()
