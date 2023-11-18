@@ -6,6 +6,14 @@ import os
 dotenv.load_dotenv()
 bot = Bot(os.getenv('bot_key'))
 
+import signal
+def handle_interrupt(signum, frame):
+    print("<bot name> Bot Terminating...")
+    bot.botClient.close()
+    exit(0)
+signal.signal(signal.SIGINT, handle_interrupt)
+signal.signal(signal.SIGTERM, handle_interrupt)
+
 @bot.botClient.event
 async def on_ready():
     await bot.botClient.tree.sync()
