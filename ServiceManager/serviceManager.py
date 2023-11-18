@@ -4,19 +4,19 @@ import sys
 import subprocess
 import time
 import signal
+import json
+import platform
 from dotenv import load_dotenv
 load_dotenv()
 
-args = sys.argv[1:]
-if (len(args) == 0):
-    print("Error: Python exec was not provided")
-    exit(1)
-if (len(args) == 1):
-    print("Error: No scripts were provided to start")
+# Load the config
+if (not os.path.exists("service.json")):
+    print("service.json file not found")
     exit(1)
 
-python_exec = args[0]
-args.pop(0)
+config = json.loads(open("service.json", "r").read())
+
+python_exec = config["pythonPath"]
 
 currentCommit = ""
 if os.path.exists("latestCommit.txt"):
@@ -25,9 +25,9 @@ if os.path.exists("latestCommit.txt"):
 
 running_processes = []
 def startProcesses():
-    for arg in args:
+    for service in config["services"]:
         #process = subprocess.Popen(['python', arg])
-        process = subprocess.Popen([python_exec, arg])
+        process = subprocess.Popen([python_exec, service])
         running_processes.append(process)
 
 
@@ -44,6 +44,11 @@ def invokeUpdate():
     for p in running_processes:
         p.terminate()
     subprocess.run("git pull origin main")
+    for script in config["updateScripts"]:
+        if platform.system() == 'Windows':
+            subprocess.run([script])
+        elif platform.system() == 'Linux':
+            subprocess.run(['bash', script])
     startProcesses()
 
 def handle_interrupt(signum, frame):

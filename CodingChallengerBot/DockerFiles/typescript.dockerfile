@@ -11,7 +11,7 @@ RUN npm install chai
 RUN npm install @codewars/test-compat
 RUN npm install -g typescript
 
-COPY typescript-entry.sh /workspace/typescript-entry.sh
+COPY CodingChallengerBot/DockerFiles/typescript-entry.sh /workspace/typescript-entry.sh
 RUN chmod +x /workspace/typescript-entry.sh
 
 ENTRYPOINT ["sh", "typescript-entry.sh"]
