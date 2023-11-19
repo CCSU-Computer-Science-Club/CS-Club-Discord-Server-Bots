@@ -6,21 +6,82 @@ load_dotenv()
 
 
 
-def record_event_to_db():
-    db_client = pymongo.MongoClient(os.getenv('mongo_string'))
-    database = db_client.get_database("CodingChallengeBot")
-    collection = database.get_collection("Users")
-    print(collection)
-    # Insert a document into the collection
-    document ={
-        "profanity_warnings":[
-        { 
-            "message_content":"test baddy word",
-            "profanity_word":"baddy",
-            "date":"11-18-2023"}
-        ]
-    }
-    collection.insert_one(document)
+
+document={
+    "_id": "65596dfc41ad54e01f806943",
+    "profanity_warnings": [
+        {
+            "message_content": "Lorem ipsum dolor sit amet",
+            "profanity_word": "Lorem",
+            "date": "2023-09-09T10:45:00.123Z"
+        }
+    ]
+}
+
+
+document1 ={
+    "_id":"65596dfc41ad54e01f806943",
+    "profanity_warnings":[      
+        {
+           "message_content" :"sdsc sdscsfcsd",
+           "profanity_word":"#4343223",
+           "date":"2023-09-09T05:21:02.896Z"
+        },
+           
+    ]    
+}
+
+
+class ProfanityDB:
+    
+    def __init__(self,document_data):
+        
+        
+        # set up DB connection
+        self.db_client = pymongo.MongoClient(os.getenv('mongo_string'))
+        self.database = self.db_client.get_database("CodingChallengeBot")
+        self.collection = self.database.get_collection("Users")
+        self.document_data=document_data
+        
+    def record_event_to_db(self ):
+        # if "profanity_warnings" not in self.collection.keys():
+        #     self.collection["profanity_warnings"] = []
+        
+        # else:
+        #     pass
+        print("here")
+        result = self.collection.insert_one(self.document_data)
+       
+    
+        if result.inserted_id:
+            print(result)
+            return True
+        else:
+            print("nooo")
+            return False
+    
+    def update_record(self):
+        user_filter = {"_id":self.document_data['_id']}
+        # Specify the new "profanity_warnings" entry
+        new_offense =self.document_data['profanity_warnings'][0]    
+        updated_document = {"$push": {"profanity_warnings": new_offense}}
+        # Update the document with a new "profanity_warnings" entry
+        result = self.collection.update_one(
+            user_filter,
+            updated_document
+        )
+               
+        if result.modified_count > 0:
+            return True
+        else:
+            return False
+   
+        
+
+
+# test:
+db = ProfanityDB(document1)
+print(db.update_record())
 
 
 class Hand_profanity:
