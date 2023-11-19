@@ -49,7 +49,12 @@ class ProfanityDB:
         self.db_client = pymongo.MongoClient(os.getenv('mongo_string'))
         self.database = self.db_client.get_database("CodingChallengeBot")
         self.collection = self.database.get_collection("Users")
-              
+        
+        # Check if user exist in DB if so update record else add record
+        #
+        #
+        #
+        
     def record_event_to_db(self ):
         if "profanity_warnings" in self.collection.find_one({"_id": self.document_data['_id']}):
             self.collection["profanity_warnings"] = []
