@@ -2,17 +2,12 @@ import discord
 from discord.ext import commands
 from discord import ChannelType
 from discord import app_commands
-import subprocess
-import docker
-import pymongo
 import os
 import random
 import re
 import signal
+import requests
 from CSBotCommon import Bot
-import time
-import shutil
-from codeValidator import validateCode
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -103,7 +98,8 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
         embed.set_footer(text="Please wait...")
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-        result = validateCode(user_code, validate_code, lang)
+        data = {"user_code": user_code, "validate_code": validate_code, "lang": lang}
+        result = requests.post("http://localhost:8989/api/runcode", json=data).text
         embed = None
         passed = False
 
@@ -128,10 +124,10 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
             pass
         if (passed):
 
-            users = list(users_collection.find({"_id": interaction.user.id}))
+            users = list(users_collection.find({"_id": str(interaction.user.id)}))
             user = None
             if (len(users) == 0):
-                user = {"_id": interaction.user.id, "score": 0, "completed": []}
+                user = {"_id": str(interaction.user.id), "score": 0, "completed": []}
                 users_collection.insert_one(user)
             else:
                 user = users[0]
@@ -141,7 +137,7 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
                 user["score"] += code_doc["difficulty"]
                 user["completed"].append(id)
 
-                users_collection.replace_one({"_id": interaction.user.id}, user)
+                users_collection.replace_one({"_id": str(interaction.user.id)}, user)
 
                 embed=discord.Embed(title="User Statistics", description=f"Challenges Complete: {len(user['completed'])}\nScore: {user['score']}", color=0x1f5ad1)
                 await interaction.followup.send(embed=embed, ephemeral=True)
