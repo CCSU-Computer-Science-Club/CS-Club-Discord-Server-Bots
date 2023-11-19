@@ -50,12 +50,13 @@ class ProfanityDB:
         self.database = self.db_client.get_database("CodingChallengeBot")
         self.collection = self.database.get_collection("Users")
         
-        # Check if user exist in DB if so update record else add record
-        #
-        #
-        #
-        
+
     def record_event_to_db(self ):
+        
+        # Check if user exist in DB if so update record else add record
+        
+        
+        
         if "profanity_warnings" in self.collection.find_one({"_id": self.document_data['_id']}):
             self.collection["profanity_warnings"] = []
         result = self.collection.insert_one(self.document_data)
