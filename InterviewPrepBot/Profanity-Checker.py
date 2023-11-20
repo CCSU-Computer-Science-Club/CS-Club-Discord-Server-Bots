@@ -75,15 +75,25 @@ class Hand_profanity:
         Here is the text for you to process: {self.message_content}
         """
         self.severity_level = palm_ai.text_generator_agent()
+        
         # Check if severity level is within the specified range (0-5)
-        if self.severity_level is not None and 0 <= self.severity_level <= int('5'):
-            return self.severity_level
+        if self.severity_level is not None:
+            unable_to_determine ="0"
+            try:
+                self.severity_level = int(self.severity_level)
+                if self.severity_level  >= 1:
+                    return self.severity_level
+                else:
+                    return unable_to_determine
+            except ValueError:
+                return unable_to_determine
         else:
-            return None
+            return 0
+            
         
     def is_it_bad_word(self):
-        self.descision = profanity.contains_profanity(self.message_content)   
-        if self.decision:   
+        self.descision = profanity.contains_profanity(self.message_content)
+        if self.descision == True: 
             for word in self.message_content.split():
                 if profanity.contains_profanity(word):
                     self.profanity_words.append(word)  
@@ -92,16 +102,19 @@ class Hand_profanity:
                 "profanity_words":self.profanity_words
             }
             document_data ={
-    "_id":self.discord_user_id,
-    "profanity_warnings":[      
-        {
-           "message_content" :self.message_content,
-           "profanity_words":self.profanity_words,
-           "date":self.date
-        },    
-    ]    
-}
-            profanity_db_instace = ProfanityDB(document_data)
+                "_id":self.discord_user_id,
+                "profanity_warnings":[      
+                    {
+                    "message_content" :self.message_content,
+                    "profanity_words":self.profanity_words,
+                    "severity_level":descision_onj["severity_level"],
+                    "date":self.date,
+                    
+                    },    
+                ],
+            }
+            profanity_db_instace = ProfanityDB(document_data).record_event_to_db()
+            
             return self.descision
         else:
             return False
@@ -150,16 +163,19 @@ document={
         {
             "message_content": "Lorem ipsum dolor sit amet",
             "profanity_words": "Lorem",
+            "severity_level":4,
             "date": "2023-09-09T10:45:00.123Z"
         },
         {
            "message_content" :"sdsc sdscsfcsd",
            "profanity_words":"#4343223",
+           "severity_level":1,
            "date":"2023-09-09T05:21:02.896Z"
         },
         {
            "message_content" :"sdsc sdscsfcsd",
            "profanity_words":"#4343223",
+           "severity_level":3,
            "date":"2023-09-09T05:21:02.896Z"
         },
     ]
@@ -170,14 +186,15 @@ document1 ={
         {
            "message_content" :"sdsc sdscsfcsd",
            "profanity_words":"#4343223",
+           "severity_level":4,
            "date":"2023-09-09T05:21:02.896Z"
         },
            
     ]    
 }
 
-db = ProfanityDB(document1)
-print(db.record_event_to_db())
+# db = ProfanityDB(document1)
+# print(db.record_event_to_db())
 
-# handle =Hand_profanity("ddsdsjjr5555", "fuck").determine_severity_level()
-# print(handle)
+handle =Hand_profanity("ddsdsjjr5555", "That  did a very good H4ndjob.").is_it_bad_word()
+print(handle)
