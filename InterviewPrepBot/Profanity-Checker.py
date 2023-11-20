@@ -1,44 +1,13 @@
 from better_profanity import profanity
 import pymongo
-import os
 from CSBotCommon import PalmApi
-from dotenv import load_dotenv
 import time
 import datetime
+import os
+from dotenv import load_dotenv
 load_dotenv()
 
 
-document={
-    "_id": "65596dfc41ad54e01f806943",
-    "profanity_warnings": [
-        {
-            "message_content": "Lorem ipsum dolor sit amet",
-            "profanity_words": "Lorem",
-            "date": "2023-09-09T10:45:00.123Z"
-        },
-        {
-           "message_content" :"sdsc sdscsfcsd",
-           "profanity_words":"#4343223",
-           "date":"2023-09-09T05:21:02.896Z"
-        },
-        {
-           "message_content" :"sdsc sdscsfcsd",
-           "profanity_words":"#4343223",
-           "date":"2023-09-09T05:21:02.896Z"
-        },
-    ]
-}
-document1 ={
-    "_id":"65596dfc41ad54e01f806943",
-    "profanity_warnings":[      
-        {
-           "message_content" :"sdsc sdscsfcsd",
-           "profanity_words":"#4343223",
-           "date":"2023-09-09T05:21:02.896Z"
-        },
-           
-    ]    
-}
 
 
 class ProfanityDB:
@@ -52,19 +21,18 @@ class ProfanityDB:
         
 
     def record_event_to_db(self ):
-        
         # Check if user exist in DB if so update record else add record
-        
-        
-        
-        if "profanity_warnings" in self.collection.find_one({"_id": self.document_data['_id']}):
-            self.collection["profanity_warnings"] = []
-        result = self.collection.insert_one(self.document_data)
-        if result.inserted_id:
-            return True
+        result = self.collection.find_one({"_id": self.document_data['_id']})
+        if result:
+            self.update_record()       
         else:
-            return False
-    
+            insert_result = self.collection.insert_one(self.document_data)
+            if insert_result.inserted_id:
+                print("adding new record")
+                return True
+            else:
+                return False
+        
     def update_record(self):
         user_filter = {"_id":self.document_data['_id']}
         # Specify the new "profanity_warnings" entry
@@ -76,6 +44,7 @@ class ProfanityDB:
             updated_document
         )   
         if result.modified_count > 0:
+            print("updating record")
             return True
         else:
             return False
@@ -169,8 +138,46 @@ class Hand_profanity:
     
     
     # # test:
-# db = ProfanityDB(document1)
-# print(db.update_record())
+
+
+
+
+
+
+document={
+    "_id": "gigi_gio",
+    "profanity_warnings": [
+        {
+            "message_content": "Lorem ipsum dolor sit amet",
+            "profanity_words": "Lorem",
+            "date": "2023-09-09T10:45:00.123Z"
+        },
+        {
+           "message_content" :"sdsc sdscsfcsd",
+           "profanity_words":"#4343223",
+           "date":"2023-09-09T05:21:02.896Z"
+        },
+        {
+           "message_content" :"sdsc sdscsfcsd",
+           "profanity_words":"#4343223",
+           "date":"2023-09-09T05:21:02.896Z"
+        },
+    ]
+}
+document1 ={
+    "_id":"65596dfc41ad54e01f806943",
+    "profanity_warnings":[      
+        {
+           "message_content" :"sdsc sdscsfcsd",
+           "profanity_words":"#4343223",
+           "date":"2023-09-09T05:21:02.896Z"
+        },
+           
+    ]    
+}
+
+db = ProfanityDB(document1)
+print(db.record_event_to_db())
 
 # handle =Hand_profanity("ddsdsjjr5555", "fuck").determine_severity_level()
 # print(handle)
