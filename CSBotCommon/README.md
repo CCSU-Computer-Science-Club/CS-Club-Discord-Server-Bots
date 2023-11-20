@@ -11,7 +11,7 @@ The CSBot class is used as a starting point for any bots created in this codebas
 
 Below shows an example implementation of a very simple bot created using the CSBot class
 
-```python-repl
+```python
 import os
 import sys
 from dotenv import load_dotenv
