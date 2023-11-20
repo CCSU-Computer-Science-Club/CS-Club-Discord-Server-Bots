@@ -23,7 +23,7 @@ client = bot_instance.botClient
 # Allows for clean termination
 def handle_interrupt(signum, frame):
     print("Coding Challenger Bot Terminating...")
-    bot_instance.botClient.close()
+    client.close()
     exit(0)
 signal.signal(signal.SIGINT, handle_interrupt)
 signal.signal(signal.SIGTERM, handle_interrupt)
@@ -208,6 +208,7 @@ async def challenge(interaction: discord.Interaction, lang: str, difficulty: str
     # Create challenge thread
     threadType = ChannelType.private_thread if private else ChannelType.public_thread
     channel = client.get_channel(int(challenge_channel_id))
+    channel.name
     thread = await channel.create_thread(
         name="Loading...",
         type=threadType
