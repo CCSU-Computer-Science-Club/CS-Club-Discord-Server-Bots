@@ -233,18 +233,18 @@ Best regards,
 #         },
 #     ]
 # }
-document1 ={
-    "_id":"65596dfc41ad54e01f806943",
-    "profanity_warnings":[      
-        {
-           "message_content" :"sdsc sdscsfcsd",
-           "profanity_words":"#4343223",
-           "severity_level":4,
-           "date":"2023-09-09T05:21:02.896Z"
-        },
+# document1 ={
+#     "_id":"65596dfc41ad54e01f806943",
+#     "profanity_warnings":[      
+#         {
+#            "message_content" :"sdsc sdscsfcsd",
+#            "profanity_words":"#4343223",
+#            "severity_level":4,
+#            "date":"2023-09-09T05:21:02.896Z"
+#         },
            
-    ]    
-}
+#     ]    
+# }
 
 # db = ProfanityDB(document1)
 # user_collection = db.get_collection_by_user("gigi_gio")
