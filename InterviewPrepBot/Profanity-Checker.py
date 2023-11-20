@@ -98,7 +98,6 @@ class Hand_profanity:
         else:
             return 0
             
-        
     def is_it_bad_word(self):
         self.descision = profanity.contains_profanity(self.message_content)
         if self.descision == True: 
@@ -122,12 +121,27 @@ class Hand_profanity:
                 ],
             }
             profanity_db_instace = ProfanityDB(document_data).record_event_to_db()
+            warning_message = f"""
+            Hello @{document_data['_id']},
             
+You are receiving this message because one of your recent messages on the server contained profanity. We want to maintain a positive and respectful environment for all members.
+Please be mindful of our community guidelines and refrain from using inappropriate language. Continued violations may result in further action.
+If you have any questions or concerns, feel free to reach out to the moderation team.
+
+Thank you for your cooperation.
+
+Best regards,
+## Moderation Team
+            """
+            warning_message_obj={
+                "warning_type":"Warning: Inappropriate Language",
+                "warning_message":warning_message,
+            }
+            self.warn_user(warning_message_obj)
             return self.descision
         else:
             return False
-            
-        
+                   
     def warn_user(self, warning_message_obj):
         try:
             bot = Bot(os.getenv('bot_key'))
@@ -161,7 +175,8 @@ class Hand_profanity:
                 "warning_message":" This is a coaching",
                 "warning_count":warning_count
             }
-            self.warn_user(warning_message_obj)
+            return warning_message_obj
+            #self.warn_user(warning_message_obj)
              
         elif severity_sum in ban_user:
             warning_message_obj={
@@ -169,7 +184,8 @@ class Hand_profanity:
                 "warning_message":" This is a banning",
                 "warning_count":warning_count
             }
-            self.warn_user(warning_message_obj)
+            return warning_message_obj
+            #self.warn_user(warning_message_obj)
             
         elif severity_sum in kick_user:
             warning_message_obj={
@@ -177,8 +193,8 @@ class Hand_profanity:
                 "warning_message":" This is a kick",
                 "warning_count":warning_count
             }
-            self.warn_user(warning_message_obj)
-           
+            return warning_message_obj
+            #self.warn_user(warning_message_obj)
         else:
             return False
     
@@ -194,37 +210,29 @@ class Hand_profanity:
         self.warn_user("Kicking you out because of ....")
         pass
     
-    
-    # # test:
-
-
-
-
-
-
-document={
-    "_id": "gigi_gio",
-    "profanity_warnings": [
-        {
-            "message_content": "Lorem ipsum dolor sit amet",
-            "profanity_words": "Lorem",
-            "severity_level":4,
-            "date": "2023-09-09T10:45:00.123Z"
-        },
-        {
-           "message_content" :"sdsc sdscsfcsd",
-           "profanity_words":"#4343223",
-           "severity_level":1,
-           "date":"2023-09-09T05:21:02.896Z"
-        },
-        {
-           "message_content" :"sdsc sdscsfcsd",
-           "profanity_words":"#4343223",
-           "severity_level":3,
-           "date":"2023-09-09T05:21:02.896Z"
-        },
-    ]
-}
+# document={
+#     "_id": "gigi_gio",
+#     "profanity_warnings": [
+#         {
+#             "message_content": "Lorem ipsum dolor sit amet",
+#             "profanity_words": "Lorem",
+#             "severity_level":4,
+#             "date": "2023-09-09T10:45:00.123Z"
+#         },
+#         {
+#            "message_content" :"sdsc sdscsfcsd",
+#            "profanity_words":"#4343223",
+#            "severity_level":1,
+#            "date":"2023-09-09T05:21:02.896Z"
+#         },
+#         {
+#            "message_content" :"sdsc sdscsfcsd",
+#            "profanity_words":"#4343223",
+#            "severity_level":3,
+#            "date":"2023-09-09T05:21:02.896Z"
+#         },
+#     ]
+# }
 document1 ={
     "_id":"65596dfc41ad54e01f806943",
     "profanity_warnings":[      
@@ -243,7 +251,5 @@ document1 ={
 # profanity_warnings =user_collection['profanity_warnings']
 
 
-
-
-handle =Hand_profanity("900420056947785739", "That  did a very good H4ndjob.").check_action_rule()
-print(handle)
+# handle =Hand_profanity("900420056947785739", "You are a fucking bicth fuck you and you too.").is_it_bad_word()
+# print(handle)
