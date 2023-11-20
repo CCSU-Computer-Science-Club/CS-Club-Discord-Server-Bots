@@ -1,6 +1,7 @@
 from better_profanity import profanity
 import pymongo
 from CSBotCommon import PalmApi
+from CSBotCommon import Bot
 import time
 import datetime
 import os
@@ -19,7 +20,14 @@ class ProfanityDB:
         self.database = self.db_client.get_database("CodingChallengeBot")
         self.collection = self.database.get_collection("Users")
         
-
+    def get_collection_by_user(self, user_id):
+        user_document = self.collection.find_one({"_id": user_id})
+        if user_document:
+           
+            return user_document
+        else:
+            return False
+    
     def record_event_to_db(self ):
         # Check if user exist in DB if so update record else add record
         result = self.collection.find_one({"_id": self.document_data['_id']})
@@ -120,22 +128,59 @@ class Hand_profanity:
             return False
             
         
-    def warn_user(self, warning_message):
-        # Check user DB check number of offenses based on some rules take action
-        # create  private thread with warning message user. 
-        pass
-    
-    def check_action_rule(self):
-        # Check user DB check number of offenses based on some rules take action
+    def warn_user(self, warning_message_obj):
+        try:
+            bot = Bot(os.getenv('bot_key'))
+            bot.create_private_thread(self.discord_user_id,os.getenv('challenge_channel_id'),warning_message_obj)
+            bot.run()
+                
+        except:
+            print("Failed to warn user")
         
-        if 1:
-            self.warn_user("Kicking you out because of ....")
-        elif 2:
-            self.warn_user("Kicking you out because of ....")
-        elif 3:
-            self.warn_user("Kicking you out because of ....")
+    def check_action_rule(self):
+        
+        # Rule Range
+        coach_user =range(1,5)
+        ban_user= range(5,8)
+        kick_user =range(8,100)
+        
+        # Check user DB check number of offenses based on some rules take action
+        severity_sum=0
+        db = ProfanityDB(document1)
+        user_collection = db.get_collection_by_user("gigi_gio")
+        
+        profanity_warnings =user_collection['profanity_warnings']
+        warning_count =len(profanity_warnings)
+        
+        for level in profanity_warnings:
+            severity_sum+= int(level['severity_level'])
+                   
+        if severity_sum in coach_user:
+            warning_message_obj={
+                "warning_type":"COACH",
+                "warning_message":" This is a coaching",
+                "warning_count":warning_count
+            }
+            self.warn_user(warning_message_obj)
+             
+        elif severity_sum in ban_user:
+            warning_message_obj={
+                "warning_type":"BAN",
+                "warning_message":" This is a banning",
+                "warning_count":warning_count
+            }
+            self.warn_user(warning_message_obj)
+            
+        elif severity_sum in kick_user:
+            warning_message_obj={
+                "warning_type":"KICK",
+                "warning_message":" This is a kick",
+                "warning_count":warning_count
+            }
+            self.warn_user(warning_message_obj)
            
-        pass
+        else:
+            return False
     
     def add_to_probation(self):
         
@@ -194,7 +239,11 @@ document1 ={
 }
 
 # db = ProfanityDB(document1)
-# print(db.record_event_to_db())
+# user_collection = db.get_collection_by_user("gigi_gio")
+# profanity_warnings =user_collection['profanity_warnings']
 
-handle =Hand_profanity("ddsdsjjr5555", "That  did a very good H4ndjob.").is_it_bad_word()
+
+
+
+handle =Hand_profanity("900420056947785739", "That  did a very good H4ndjob.").check_action_rule()
 print(handle)

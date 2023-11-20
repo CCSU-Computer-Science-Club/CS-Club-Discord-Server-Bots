@@ -7,6 +7,7 @@ import google.auth.transport.requests
 from google.protobuf import json_format
 import dotenv
 import os
+from discord import ChannelType
 
 class Bot:
     def __init__(self, botToken, mongoUri=None):
@@ -40,6 +41,31 @@ class Bot:
             current_chunk = ''
         return chunks
 
+    def create_private_thread(self,user_id,channel_id,message_object):
+        async def on_ready():
+            print("Bot reading, creating thread...")
+            user = self.botClient.get_user(int(user_id))
+            print(user)
+            if user is None:
+                return
+
+            threadType = ChannelType.private_thread
+            channel = self.botClient.get_channel(int(channel_id))
+            print(channel.name)
+            thread = await channel.create_thread(
+                name=message_object['warning_type'],
+                type=threadType
+            )
+            await thread.send(message_object['warning_message'])
+
+            await thread.add_user(user)
+
+            # Remove the event listener after creating the thread
+            self.botClient.remove_listener(on_ready, 'on_ready')
+
+    # Add the event listener
+        self.botClient.add_listener(on_ready, 'on_ready')
+               
 class PalmApi:
     def __init__(self, prompt,palmp_api_key,output_max_length=None ):
         if (output_max_length!=None):
