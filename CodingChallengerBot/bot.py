@@ -8,6 +8,7 @@ import re
 import signal
 import requests
 from CSBotCommon import Bot
+import socketio 
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -34,6 +35,9 @@ database = db_client.get_database("CodingChallengeBot")
 collection = database.get_collection("Challenges")
 users_collection = database.get_collection("Users")
 
+# Connect to SocketIO Server
+io = socketio.SimpleClient()
+io.connect('http://localhost:8989', transports=['websocket'])
 
 # Start the discord bot
 @client.event
@@ -99,7 +103,9 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
         data = {"user_code": user_code, "validate_code": validate_code, "lang": lang}
-        result = requests.post("http://localhost:8989/api/runcode", json=data).text
+        io.emit("enqueue_code", data)
+        result = io.receive()[1]
+
         embed = None
         passed = False
 
