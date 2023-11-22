@@ -68,6 +68,7 @@ def parseResult(result:str):
         elif prefix == "<PASSED":
             parsed_output.append(f"᲼᲼᲼᲼**Passed**:\n᲼᲼᲼᲼᲼᲼{content.strip()}")
     lines.reverse()
+    completed_in = 0
     for line in lines:
         if line.startswith("<COMPLETEDIN::>"):
             completed_in = float(line.removeprefix("<COMPLETEDIN::>"))
@@ -154,7 +155,7 @@ class SubmitSolutionModal(discord.ui.Modal, title='Submit Solution'):
         
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         print(error)
-        await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
+        await interaction.edit_original_response('Oops! Something went wrong.', ephemeral=True)
 
 # Defines button interaction view to close a challenge
 # Send as firsy message in the created thread

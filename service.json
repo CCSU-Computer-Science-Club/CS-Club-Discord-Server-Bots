@@ -1,5 +1,5 @@
 {
     "pythonPath": "./.venv/Scripts/python.exe",
     "updateScripts": [".\\CodingChallengerBot\\DockerFiles\\buildDocker.bat"],
-    "services": ["./CodingChallengerBot/bot.py"]
+    "services": ["./CodingChallengerBot/bot.py", "./CodeRunnerService/codeValidatorService.py", "./CodeRunnerService/codeRunnerApi.py"]
 }
