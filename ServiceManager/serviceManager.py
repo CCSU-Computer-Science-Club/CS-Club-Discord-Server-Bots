@@ -81,11 +81,11 @@ while process_loop:
     latestCommit = getLatestCommit(username, repo_name)
 
     if currentCommit != latestCommit:
+        print("Update found...")
         with open("latestCommit.txt", "w") as file:
             file.write(latestCommit)
         currentCommit = latestCommit
         invokeUpdate()
-        print("Update found...")
     else:
         for index,p in enumerate(running_processes):
             if (p.poll() is not None):
