@@ -12,9 +12,9 @@ Example `service.json`:
 
 ```json
 {
-  "pythonPath": "/path/to/python/interpreter",
-  "services": ["service1.py", "service2.py"],
-  "updateScripts": ["update_script1.sh", "update_script2.sh"]
+    "pythonPath": "./.venv/Scripts/python.exe",
+    "updateScripts": [".\\CodingChallengerBot\\DockerFiles\\buildDocker.bat"],
+    "services": ["service1.py", "service2.py"]
 }
 ```
 

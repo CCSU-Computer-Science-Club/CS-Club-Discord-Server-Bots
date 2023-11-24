@@ -49,7 +49,7 @@ def validate_javascript(user_code: str, validate_code: str):
     os.mkdir(f"run/{fileID}")
 
     data = ""
-    with open(f"DockerFiles/test.js", "r", encoding="utf-8") as file:
+    with open(f"CodingChallengerBot/DockerFiles/test.js", "r", encoding="utf-8") as file:
         data = file.read()
 
     with open(f"run/{fileID}/test.js", "w", encoding="utf-8") as file:
@@ -71,7 +71,7 @@ def validate_typescript(user_code: str, validate_code: str):
     os.mkdir(f"run/{fileID}")
 
     data = ""
-    with open(f"DockerFiles/test.ts", "r", encoding="utf-8") as file:
+    with open(f"CodingChallengerBot/DockerFiles/test.ts", "r", encoding="utf-8") as file:
         data = file.read()
 
     with open(f"run/{fileID}/solution.ts", "w", encoding="utf-8") as file:
