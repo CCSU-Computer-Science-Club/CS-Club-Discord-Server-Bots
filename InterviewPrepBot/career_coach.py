@@ -28,9 +28,8 @@ async def on_message(message):
         prompt = None
 
         if message_text:
-            # user_id =  bot.botClient.get_user(int(os.getenv('discord_user_id')))
-            # handle =Hand_profanity(user_id, message_text).is_it_bad_word()
-            handle= False
+            user_id =  bot.botClient.get_user(int(os.getenv('discord_user_id')))
+            handle =Hand_profanity(user_id, message_text).is_it_bad_word()
             # if No bad words was found in user message, Proceed
             if handle != True: 
             

@@ -117,6 +117,7 @@ class Hand_profanity:
 
             return self.descision
         else:
+            print("The user message was clean")
             return False
                    
     def warn_user(self, warning_message_obj):
