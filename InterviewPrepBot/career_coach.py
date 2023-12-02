@@ -3,11 +3,10 @@ from CSBotCommon import Bot
 from Profanity_Checker import Hand_profanity
 import dotenv
 import os
+import signal
 
 dotenv.load_dotenv()
 bot = Bot(os.getenv('bot_key'))
-
-import signal
 def handle_interrupt(signum, frame):
     print("<bot name> Bot Terminating...")
     bot.botClient.close()
@@ -20,12 +19,10 @@ async def on_ready():
     await bot.botClient.tree.sync()
     print(f'The bot has been started!')
 
-
 @bot.botClient.event
 async def on_message(message):
     if bot.botClient.user.mentioned_in(message):
         message_text = message.content.replace("<@1162473601564414022>", "")
-        prompt = None
 
         if message_text:
             user_id =  bot.botClient.get_user(int(os.getenv('discord_user_id')))
@@ -57,11 +54,9 @@ async def on_message(message):
                     sad='\U0001f63f'
                     response_from_bot = f'Hello, I am sorry I have let you down. I was unable to generate a response for you please try again later {sad}'
 
-
                 await message.channel.send(f'{response_from_bot}, {message.author.mention}!')
             else:
                 return
-
     await bot.botClient.process_commands(message)
 
 

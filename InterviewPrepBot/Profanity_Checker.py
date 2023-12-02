@@ -1,8 +1,6 @@
 from better_profanity import profanity
 import pymongo
-from CSBotCommon import PalmApi
 from CSBotCommon import Bot
-import time
 import datetime
 import os
 import pandas as pd
@@ -171,23 +169,12 @@ Best regards,
             self.warn_user(warning_message_obj)
         else:
             return False
-    
     def add_to_probation(self):
-        
+
         # warn user
         self.warn_user("Watchout ... buddy")
 
-        pass
-    
     def kick_user(self):
         # warn user
         self.warn_user("Kicking you out because of ....")
         pass
-
-# db = ProfanityDB(document1)
-# user_collection = db.get_collection_by_user("gigi_gio")
-# profanity_warnings =user_collection['profanity_warnings']
-
-# handle =Hand_profanity("900420056947785739", "boobs 69 dickhead")
-#
-# print(handle.is_it_bad_word())
